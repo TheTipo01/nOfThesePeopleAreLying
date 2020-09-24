@@ -1,0 +1,10 @@
+#Example configuration file, remember to remove "example_" from the file after adding your tokens!
+
+#Discord Bot token:
+#To get your bot's token, go to https://discord.com/developers/applications click "New application",
+#click "Bot" on the left bar, click "Add bot" and confirm, then click "Copy" under "Click to reveal token"
+token: ""
+
+#Prefix for bot commands:
+#This is what you are going to put before your bot's commands (for example: !play, !pause)
+prefix: ";"
