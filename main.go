@@ -126,7 +126,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		gamer := getRand(m.GuildID, false)
 		game[m.GuildID].guesser = gamer.id
 
-		_, _ = s.ChannelMessageSend(m.ChannelID, "Round "+strconv.Itoa(game[m.GuildID].round)+" started!\n"+gamer.username+" needs to guess!\nSend your article in private to me!")
+		_, _ = s.ChannelMessageSend(m.ChannelID, "Round "+strconv.Itoa(game[m.GuildID].round)+" started!\n"+"<@"+gamer.id+"> needs to guess! to guess!\nSend your article in private to me!")
 
 		return
 	}
@@ -153,7 +153,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				gamer := getRand(guild, false)
 				game[guild].guesser = gamer.id
 
-				_, _ = s.ChannelMessageSend(game[guild].channel, "Round "+strconv.Itoa(game[guild].round)+" started!\n"+gamer.username+" needs to guess!\nSend your article in private to me!")
+				_, _ = s.ChannelMessageSend(game[guild].channel, "Round "+strconv.Itoa(game[guild].round)+" started!\n"+"<@"+gamer.id+"> needs to guess!\nSend your article in private to me!")
 
 				return
 			}
@@ -186,7 +186,7 @@ func reactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 		return
 	}
 
-	if game[r.GuildID] != nil && !game[r.GuildID].started && r.MessageID == game[r.GuildID].m.ID && r.Emoji.Name == playEmoji {
+	if game[r.GuildID] != nil && !game[r.GuildID].started && game[r.GuildID].m != nil && r.MessageID == game[r.GuildID].m.ID && r.Emoji.Name == playEmoji {
 		u, err := s.GuildMember(r.GuildID, r.UserID)
 		if err != nil {
 			fmt.Println(err)

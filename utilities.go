@@ -78,6 +78,10 @@ func leaderboard(guild string) string {
 }
 
 func updatePoint(guild string, didYouWin bool) {
+	for _, g := range game[guild].players {
+		g.article = ""
+	}
+
 	if didYouWin {
 		game[guild].players[game[guild].ownerArticle].points++
 		game[guild].players[game[guild].guesser].points++
