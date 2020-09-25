@@ -28,4 +28,8 @@ type Game struct {
 	channel string
 	// Guild
 	guild string
+	// Do we except a response from the guesser?
+	response bool
+	// Selected user for the article
+	ownerArticle string
 }

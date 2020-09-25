@@ -111,7 +111,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			return
 		}
 
-		game[m.GuildID] = &Game{sntM, nil, false, "", 0, m.ChannelID, m.GuildID}
+		game[m.GuildID] = &Game{sntM, nil, false, "", 0, m.ChannelID, m.GuildID, false, ""}
 
 		return
 	}
@@ -122,7 +122,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		game[m.GuildID].m = nil
 
 		game[m.GuildID].round++
+
 		gamer := getRand(m.GuildID, false)
+		game[m.GuildID].guesser = gamer.id
 
 		_, _ = s.ChannelMessageSend(m.ChannelID, "Round "+strconv.Itoa(game[m.GuildID].round)+" started!\n"+gamer.username+" needs to guess!\nSend your article in private to me!")
 
@@ -133,6 +135,29 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.GuildID == "" {
 		guild := getGuildFromUser(m.Author.ID)
 		if guild != "" {
+			// Check if the guesser guessed something
+			if game[guild].response && game[guild].guesser == m.Author.ID {
+				game[guild].response = false
+
+				if didYoUGuess(guild, m.Content) {
+					updatePoint(guild, true)
+					_, _ = s.ChannelMessageSend(game[guild].channel, "Correct!\nUpdated leaderboard: \n"+leaderboard(guild))
+				} else {
+					updatePoint(guild, false)
+					_, _ = s.ChannelMessageSend(game[guild].channel, "Wrong! The correct user was "+game[guild].players[game[guild].ownerArticle].username+"!\nUpdated leaderboard: \n"+leaderboard(guild))
+				}
+
+				// New round
+				game[guild].round++
+
+				gamer := getRand(guild, false)
+				game[guild].guesser = gamer.id
+
+				_, _ = s.ChannelMessageSend(game[guild].channel, "Round "+strconv.Itoa(game[guild].round)+" started!\n"+gamer.username+" needs to guess!\nSend your article in private to me!")
+
+				return
+			}
+
 			if game[guild].guesser == m.Author.ID {
 				_, _ = s.ChannelMessageSend(m.ChannelID, "You need to guess!\nWait for your friends to finish sending articles in!")
 				return
@@ -142,7 +167,11 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			_, _ = s.ChannelMessageSend(m.ChannelID, "Got your article!")
 
 			if haveWeFinished(guild) {
-				_, _ = s.ChannelMessageSend(game[guild].channel, "All articles are in!\nThe selected one is: "+getRand(guild, true).article)
+				random := getRand(guild, true)
+				game[guild].ownerArticle = random.id
+
+				game[guild].response = true
+				_, _ = s.ChannelMessageSend(game[guild].channel, "All articles are in!\nThe selected one is: "+random.article+"\nAnswer in private with only the username!")
 			}
 		}
 

@@ -1,6 +1,11 @@
 package main
 
-import "math/rand"
+import (
+	"math/rand"
+	"sort"
+	"strconv"
+	"strings"
+)
 
 func getRand(guild string, ignoreGuesser bool) *Gamer {
 	// produce a pseudo-random number between 0 and len(a)-1
@@ -45,4 +50,38 @@ func haveWeFinished(guild string) bool {
 	}
 
 	return len(game[guild].players)-i == 1
+}
+
+// Checks if you have guessed the user who sent the article
+func didYoUGuess(guild, username string) bool {
+	return strings.ToLower(game[guild].players[game[guild].ownerArticle].username) == strings.ToLower(username)
+}
+
+func leaderboard(guild string) string {
+	// Sort the players
+	var players []Gamer
+	for _, p := range game[guild].players {
+		players = append(players, *p)
+	}
+
+	sort.Slice(players, func(i, j int) bool {
+		return players[i].points < players[j].points
+	})
+
+	// Create string
+	var message string
+	for _, p := range players {
+		message += p.username + " - " + strconv.Itoa(p.points) + "\n"
+	}
+
+	return message
+}
+
+func updatePoint(guild string, didYouWin bool) {
+	if didYouWin {
+		game[guild].players[game[guild].ownerArticle].points++
+		game[guild].players[game[guild].guesser].points++
+	} else {
+		game[guild].players[game[guild].ownerArticle].points++
+	}
 }
