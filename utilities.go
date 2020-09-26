@@ -7,12 +7,12 @@ import (
 	"strings"
 )
 
-func getRand(guild string, ignoreGuesser bool) *Gamer {
+func getRand(guild string, ignoreGuesser bool) *gamer {
 	// produce a pseudo-random number between 0 and len(a)-1
 retry:
 
-	i := int(float32(len(game[guild].players)) * rand.Float32())
-	for _, v := range game[guild].players {
+	i := int(float32(len(games[guild].players)) * rand.Float32())
+	for _, v := range games[guild].players {
 		if i == 0 {
 			if ignoreGuesser {
 				if v.article == "" {
@@ -29,7 +29,7 @@ retry:
 
 // Tries to get guild and other info from a user string
 func getGuildFromUser(user string) string {
-	for _, g := range game {
+	for _, g := range games {
 		for _, p := range g.players {
 			if p.id == user {
 				return g.guild
@@ -43,24 +43,24 @@ func getGuildFromUser(user string) string {
 func haveWeFinished(guild string) bool {
 	var i int
 
-	for _, p := range game[guild].players {
+	for _, p := range games[guild].players {
 		if p.article != "" {
 			i++
 		}
 	}
 
-	return len(game[guild].players)-i == 1
+	return len(games[guild].players)-i == 1
 }
 
 // Checks if you have guessed the user who sent the article
 func didYoUGuess(guild, username string) bool {
-	return strings.ToLower(game[guild].players[game[guild].ownerArticle].username) == strings.ToLower(username)
+	return strings.ToLower(games[guild].players[games[guild].ownerArticle].username) == strings.ToLower(username)
 }
 
 func leaderboard(guild string) string {
 	// Sort the players
-	var players []Gamer
-	for _, p := range game[guild].players {
+	var players []gamer
+	for _, p := range games[guild].players {
 		players = append(players, *p)
 	}
 
@@ -78,14 +78,14 @@ func leaderboard(guild string) string {
 }
 
 func updatePoint(guild string, didYouWin bool) {
-	for _, g := range game[guild].players {
+	for _, g := range games[guild].players {
 		g.article = ""
 	}
 
 	if didYouWin {
-		game[guild].players[game[guild].ownerArticle].points++
-		game[guild].players[game[guild].guesser].points++
+		games[guild].players[games[guild].ownerArticle].points++
+		games[guild].players[games[guild].guesser].points++
 	} else {
-		game[guild].players[game[guild].ownerArticle].points++
+		games[guild].players[games[guild].ownerArticle].points++
 	}
 }

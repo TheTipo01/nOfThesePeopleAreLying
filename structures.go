@@ -2,7 +2,7 @@ package main
 
 import "github.com/bwmarrin/discordgo"
 
-type Gamer struct {
+type gamer struct {
 	// User id
 	id string
 	// Points of the user
@@ -13,11 +13,11 @@ type Gamer struct {
 	article string
 }
 
-type Game struct {
+type game struct {
 	// Message sent by the bot
 	m *discordgo.Message
 	// Maps of the people playing
-	players map[string]*Gamer
+	players map[string]*gamer
 	// Has the game started?
 	started bool
 	// Who guesses this round

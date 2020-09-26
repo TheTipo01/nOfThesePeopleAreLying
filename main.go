@@ -16,7 +16,7 @@ import (
 var (
 	token  string
 	prefix string
-	game   = make(map[string]*Game)
+	games  = make(map[string]*game)
 )
 
 const (
@@ -97,7 +97,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if m.Content == prefix+"play" && game[m.GuildID] == nil {
+	if m.Content == prefix+"play" && games[m.GuildID] == nil {
 		sntM, err := s.ChannelMessageSend(m.ChannelID, "To play, add a reaction!")
 		if err != nil {
 			fmt.Println(err)
@@ -111,22 +111,22 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			return
 		}
 
-		game[m.GuildID] = &Game{sntM, nil, false, "", 0, m.ChannelID, m.GuildID, false, ""}
+		games[m.GuildID] = &game{sntM, nil, false, "", 0, m.ChannelID, m.GuildID, false, ""}
 
 		return
 	}
 
-	if m.Content == prefix+"start" && game[m.GuildID] != nil {
+	if m.Content == prefix+"start" && games[m.GuildID] != nil {
 
-		_ = s.ChannelMessageDelete(game[m.GuildID].m.ChannelID, game[m.GuildID].m.ID)
-		game[m.GuildID].m = nil
+		_ = s.ChannelMessageDelete(games[m.GuildID].m.ChannelID, games[m.GuildID].m.ID)
+		games[m.GuildID].m = nil
 
-		game[m.GuildID].round++
+		games[m.GuildID].round++
 
 		gamer := getRand(m.GuildID, false)
-		game[m.GuildID].guesser = gamer.id
+		games[m.GuildID].guesser = gamer.id
 
-		_, _ = s.ChannelMessageSend(m.ChannelID, "Round "+strconv.Itoa(game[m.GuildID].round)+" started!\n"+"<@"+gamer.id+"> needs to guess! to guess!\nSend your article in private to me!")
+		_, _ = s.ChannelMessageSend(m.ChannelID, "Round "+strconv.Itoa(games[m.GuildID].round)+" started!\n"+"<@"+gamer.id+"> needs to guess! to guess!\nSend your article in private to me!")
 
 		return
 	}
@@ -136,42 +136,42 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		guild := getGuildFromUser(m.Author.ID)
 		if guild != "" {
 			// Check if the guesser guessed something
-			if game[guild].response && game[guild].guesser == m.Author.ID {
-				game[guild].response = false
+			if games[guild].response && games[guild].guesser == m.Author.ID {
+				games[guild].response = false
 
 				if didYoUGuess(guild, m.Content) {
 					updatePoint(guild, true)
-					_, _ = s.ChannelMessageSend(game[guild].channel, "Correct!\nUpdated leaderboard: \n"+leaderboard(guild))
+					_, _ = s.ChannelMessageSend(games[guild].channel, "Correct!\nUpdated leaderboard: \n"+leaderboard(guild))
 				} else {
 					updatePoint(guild, false)
-					_, _ = s.ChannelMessageSend(game[guild].channel, "Wrong! The correct user was "+game[guild].players[game[guild].ownerArticle].username+"!\nUpdated leaderboard: \n"+leaderboard(guild))
+					_, _ = s.ChannelMessageSend(games[guild].channel, "Wrong! The correct user was "+games[guild].players[games[guild].ownerArticle].username+"!\nUpdated leaderboard: \n"+leaderboard(guild))
 				}
 
 				// New round
-				game[guild].round++
+				games[guild].round++
 
 				gamer := getRand(guild, false)
-				game[guild].guesser = gamer.id
+				games[guild].guesser = gamer.id
 
-				_, _ = s.ChannelMessageSend(game[guild].channel, "Round "+strconv.Itoa(game[guild].round)+" started!\n"+"<@"+gamer.id+"> needs to guess!\nSend your article in private to me!")
+				_, _ = s.ChannelMessageSend(games[guild].channel, "Round "+strconv.Itoa(games[guild].round)+" started!\n"+"<@"+gamer.id+"> needs to guess!\nSend your article in private to me!")
 
 				return
 			}
 
-			if game[guild].guesser == m.Author.ID {
+			if games[guild].guesser == m.Author.ID {
 				_, _ = s.ChannelMessageSend(m.ChannelID, "You need to guess!\nWait for your friends to finish sending articles in!")
 				return
 			}
 
-			game[guild].players[m.Author.ID].article = m.Content
+			games[guild].players[m.Author.ID].article = m.Content
 			_, _ = s.ChannelMessageSend(m.ChannelID, "Got your article!")
 
 			if haveWeFinished(guild) {
 				random := getRand(guild, true)
-				game[guild].ownerArticle = random.id
+				games[guild].ownerArticle = random.id
 
-				game[guild].response = true
-				_, _ = s.ChannelMessageSend(game[guild].channel, "All articles are in!\nThe selected one is: "+random.article+"\nAnswer in private with only the username!")
+				games[guild].response = true
+				_, _ = s.ChannelMessageSend(games[guild].channel, "All articles are in!\nThe selected one is: "+random.article+"\nAnswer in private with only the username!")
 			}
 		}
 
@@ -186,18 +186,18 @@ func reactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 		return
 	}
 
-	if game[r.GuildID] != nil && !game[r.GuildID].started && game[r.GuildID].m != nil && r.MessageID == game[r.GuildID].m.ID && r.Emoji.Name == playEmoji {
+	if games[r.GuildID] != nil && !games[r.GuildID].started && games[r.GuildID].m != nil && r.MessageID == games[r.GuildID].m.ID && r.Emoji.Name == playEmoji {
 		u, err := s.GuildMember(r.GuildID, r.UserID)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
-		if game[r.GuildID].players == nil {
-			game[r.GuildID].players = make(map[string]*Gamer)
+		if games[r.GuildID].players == nil {
+			games[r.GuildID].players = make(map[string]*gamer)
 		}
 
-		game[r.GuildID].players[r.UserID] = &Gamer{r.UserID, 0, u.User.Username, ""}
+		games[r.GuildID].players[r.UserID] = &gamer{r.UserID, 0, u.User.Username, ""}
 	}
 
 }
@@ -209,8 +209,8 @@ func reactionRemove(s *discordgo.Session, r *discordgo.MessageReactionRemove) {
 		return
 	}
 
-	if game[r.GuildID] != nil && !game[r.GuildID].started && r.MessageID == game[r.GuildID].m.ID && r.Emoji.Name == playEmoji {
-		game[r.GuildID].players[r.UserID] = nil
+	if games[r.GuildID] != nil && !games[r.GuildID].started && r.MessageID == games[r.GuildID].m.ID && r.Emoji.Name == playEmoji {
+		games[r.GuildID].players[r.UserID] = nil
 	}
 
 }
