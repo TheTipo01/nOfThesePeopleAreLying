@@ -24,12 +24,16 @@ type game struct {
 	guesser string
 	// Round
 	round int
-	// Channel
+	// Text channel for where to send messages
 	channel string
-	// Guild
+	// Guild of the game
 	guild string
 	// Do we except a response from the guesser?
 	response bool
 	// Selected user for the article
-	ownerArticle string
+	choosenOne string
+	// Old messages, to delete the next round
+	messages []discordgo.Message
+	// Previous guesser
+	previousGuesser string
 }

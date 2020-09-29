@@ -1,12 +1,14 @@
 package main
 
 import (
+	"github.com/bwmarrin/discordgo"
 	"math/rand"
 	"sort"
 	"strconv"
 	"strings"
 )
 
+// Returns a random player, and if ignoreGuesser is true, ignores the currently guessing person
 func getRand(guild string, ignoreGuesser bool) *gamer {
 	// produce a pseudo-random number between 0 and len(a)-1
 retry:
@@ -40,6 +42,7 @@ func getGuildFromUser(user string) string {
 	return ""
 }
 
+// Checks if all the people have added an article
 func haveWeFinished(guild string) bool {
 	var i int
 
@@ -54,9 +57,10 @@ func haveWeFinished(guild string) bool {
 
 // Checks if you have guessed the user who sent the article
 func didYoUGuess(guild, username string) bool {
-	return strings.ToLower(games[guild].players[games[guild].ownerArticle].username) == strings.ToLower(username)
+	return strings.ToLower(games[guild].players[games[guild].choosenOne].username) == strings.ToLower(username)
 }
 
+// Returns a leaderboard for the current game
 func leaderboard(guild string) string {
 	// Sort the players
 	var players []gamer
@@ -65,7 +69,7 @@ func leaderboard(guild string) string {
 	}
 
 	sort.Slice(players, func(i, j int) bool {
-		return players[i].points < players[j].points
+		return players[i].points > players[j].points
 	})
 
 	// Create string
@@ -77,15 +81,23 @@ func leaderboard(guild string) string {
 	return message
 }
 
+// Skips to the next round
 func updatePoint(guild string, didYouWin bool) {
 	for _, g := range games[guild].players {
 		g.article = ""
 	}
 
 	if didYouWin {
-		games[guild].players[games[guild].ownerArticle].points++
+		games[guild].players[games[guild].choosenOne].points++
 		games[guild].players[games[guild].guesser].points++
 	} else {
-		games[guild].players[games[guild].ownerArticle].points++
+		games[guild].players[games[guild].choosenOne].points++
+	}
+}
+
+// Removes the provided messages, ignoring errors
+func removeMessages(s *discordgo.Session, messages []discordgo.Message) {
+	for _, m := range messages {
+		_ = s.ChannelMessageDelete(m.ChannelID, m.ID)
 	}
 }
