@@ -20,7 +20,7 @@ type game struct {
 	players map[string]*gamer
 	// Has the game started?
 	started bool
-	// Who guesses this round
+	// Id of who guesses in this round
 	guesser string
 	// Round
 	round int
@@ -33,7 +33,7 @@ type game struct {
 	// Selected user for the article
 	choosenOne string
 	// Old messages, to delete the next round
-	messages []discordgo.Message
-	// Previous guesser
+	messages []*discordgo.Message
+	// Id of the previous guesser
 	previousGuesser string
 }

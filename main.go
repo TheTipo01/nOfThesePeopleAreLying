@@ -131,7 +131,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		mex, _ := s.ChannelMessageSend(m.ChannelID, "Round "+strconv.Itoa(games[m.GuildID].round)+" started!\n"+"<@"+gamer.id+"> needs to guess! to guess!\nSend your article in private to me!")
 
 		// Add the message, to delete it later
-		games[m.GuildID].messages = append(games[m.GuildID].messages, *mex)
+		games[m.GuildID].messages = append(games[m.GuildID].messages, mex)
 		return
 	}
 
@@ -140,7 +140,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		games[m.GuildID].players[m.ID] = nil
 		mex, _ := s.ChannelMessageSend(m.GuildID, "You have been removed from the game!")
 		// Add the message, to delete it later
-		games[m.GuildID].messages = append(games[m.GuildID].messages, *mex)
+		games[m.GuildID].messages = append(games[m.GuildID].messages, mex)
 
 		return
 	}
@@ -166,16 +166,19 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				removeMessages(s, games[guild].messages)
 				games[guild].messages = nil
 
+				// Saves previous guesser
+				games[guild].previousGuesser = games[guild].guesser
+
 				if didYoUGuess(guild, m.Content) {
 					updatePoint(guild, true)
 					mex, _ := s.ChannelMessageSend(games[guild].channel, "Correct!\nUpdated leaderboard: \n"+leaderboard(guild))
 					// Add the message, to delete it later
-					games[m.GuildID].messages = append(games[m.GuildID].messages, *mex)
+					games[guild].messages = append(games[guild].messages, mex)
 				} else {
 					updatePoint(guild, false)
 					mex, _ := s.ChannelMessageSend(games[guild].channel, "Wrong! The correct user was "+games[guild].players[games[guild].choosenOne].username+"!\nUpdated leaderboard: \n"+leaderboard(guild))
 					// Add the message, to delete it later
-					games[m.GuildID].messages = append(games[m.GuildID].messages, *mex)
+					games[guild].messages = append(games[guild].messages, mex)
 				}
 
 				// New round
@@ -186,7 +189,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 				mex, _ := s.ChannelMessageSend(games[guild].channel, "Round "+strconv.Itoa(games[guild].round)+" started!\n"+"<@"+gamer.id+"> needs to guess!\nSend your article in private to me!")
 				// Add the message, to delete it later
-				games[m.GuildID].messages = append(games[m.GuildID].messages, *mex)
+				games[guild].messages = append(games[guild].messages, mex)
 
 				return
 			}
@@ -206,7 +209,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				games[guild].response = true
 				mex, _ := s.ChannelMessageSend(games[guild].channel, "All articles are in!\nThe selected one is: "+random.article+"\nAnswer in private with only the username!")
 				// Add the message, to delete it later
-				games[m.GuildID].messages = append(games[m.GuildID].messages, *mex)
+				games[guild].messages = append(games[guild].messages, mex)
 			}
 		}
 

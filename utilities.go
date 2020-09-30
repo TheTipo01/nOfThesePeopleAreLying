@@ -17,7 +17,13 @@ retry:
 	for _, v := range games[guild].players {
 		if i == 0 {
 			if ignoreGuesser {
+				// If we need to ignore the guesser, we check if the user has an empty article, and then try again
 				if v.article == "" {
+					goto retry
+				}
+			} else {
+				// Else, we ignore the previous guesser (because yes)
+				if v.id == games[guild].previousGuesser {
 					goto retry
 				}
 			}
@@ -96,7 +102,7 @@ func updatePoint(guild string, didYouWin bool) {
 }
 
 // Removes the provided messages, ignoring errors
-func removeMessages(s *discordgo.Session, messages []discordgo.Message) {
+func removeMessages(s *discordgo.Session, messages []*discordgo.Message) {
 	for _, m := range messages {
 		_ = s.ChannelMessageDelete(m.ChannelID, m.ID)
 	}
