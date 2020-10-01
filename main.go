@@ -67,8 +67,9 @@ func main() {
 	dg.AddHandler(messageCreate)
 	dg.AddHandler(reactionAdd)
 	dg.AddHandler(reactionRemove)
+	dg.AddHandler(ready)
 
-	// In this example, we only care about receiving m events.
+	// Intents for getting the correct event from discord
 	dg.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsGuildMessages | discordgo.IntentsGuildMessageReactions | discordgo.IntentsDirectMessages)
 
 	// Open a websocket connection to Discord and begin listening.
@@ -86,6 +87,15 @@ func main() {
 
 	// Cleanly close down the Discord session.
 	_ = dg.Close()
+}
+
+func ready(s *discordgo.Session, _ *discordgo.Ready) {
+
+	// Set the playing status.
+	err := s.UpdateStatus(0, prefix+"help")
+	if err != nil {
+		fmt.Println("Can't set status,", err)
+	}
 }
 
 // This function will be called (due to AddHandler above) every time a new
@@ -132,6 +142,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		// Add the message, to delete it later
 		games[m.GuildID].messages = append(games[m.GuildID].messages, mex)
+
 		return
 	}
 
@@ -148,10 +159,22 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Stop the game
 	if m.Content == prefix+"stop" && games[m.GuildID] != nil {
 		games[m.GuildID] = nil
-		mex, _ := s.ChannelMessageSend(m.GuildID, "Game has been stopped!")
+		mex, _ := s.ChannelMessageSend(m.ChannelID, "Game has been stopped!")
 
 		time.Sleep(time.Second)
 		_ = s.ChannelMessageDelete(mex.ChannelID, mex.ID)
+
+		return
+	}
+
+	// Help message
+	if m.Content == prefix+"help" {
+		mex, _ := s.ChannelMessageSend(m.ChannelID, "```"+prefix+"play - The bot sends a message to start the session\n"+prefix+"start - Start the session\n"+prefix+"remove - Removes yourself from the game\n"+prefix+"stop - Stop the current game```")
+
+		time.Sleep(5 * time.Second)
+		_ = s.ChannelMessageDelete(mex.ChannelID, mex.ID)
+
+		return
 	}
 
 	// Private messages, for doing all sorts of things
@@ -170,12 +193,12 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				games[guild].previousGuesser = games[guild].guesser
 
 				if didYoUGuess(guild, m.Content) {
-					updatePoint(guild, true)
+					updatePoint(guild, "")
 					mex, _ := s.ChannelMessageSend(games[guild].channel, "Correct!\nUpdated leaderboard: \n"+leaderboard(guild))
 					// Add the message, to delete it later
 					games[guild].messages = append(games[guild].messages, mex)
 				} else {
-					updatePoint(guild, false)
+					updatePoint(guild, searchUser(m.Content))
 					mex, _ := s.ChannelMessageSend(games[guild].channel, "Wrong! The correct user was "+games[guild].players[games[guild].choosenOne].username+"!\nUpdated leaderboard: \n"+leaderboard(guild))
 					// Add the message, to delete it later
 					games[guild].messages = append(games[guild].messages, mex)

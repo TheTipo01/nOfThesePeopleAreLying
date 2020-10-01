@@ -88,16 +88,16 @@ func leaderboard(guild string) string {
 }
 
 // Skips to the next round
-func updatePoint(guild string, didYouWin bool) {
+func updatePoint(guild, choosen string) {
 	for _, g := range games[guild].players {
 		g.article = ""
 	}
 
-	if didYouWin {
+	if choosen == "" {
 		games[guild].players[games[guild].choosenOne].points++
 		games[guild].players[games[guild].guesser].points++
 	} else {
-		games[guild].players[games[guild].choosenOne].points++
+		games[guild].players[choosen].points++
 	}
 }
 
@@ -106,4 +106,18 @@ func removeMessages(s *discordgo.Session, messages []*discordgo.Message) {
 	for _, m := range messages {
 		_ = s.ChannelMessageDelete(m.ChannelID, m.ID)
 	}
+}
+
+func searchUser(nickname string) string {
+	nickname = strings.ToLower(nickname)
+
+	for _, g := range games {
+		for _, p := range g.players {
+			if strings.ToLower(p.username) == nickname {
+				return p.id
+			}
+		}
+	}
+
+	return ""
 }
