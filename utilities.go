@@ -63,7 +63,7 @@ func haveWeFinished(guild string) bool {
 
 // Checks if you have guessed the user who sent the article
 func didYoUGuess(guild, username string) bool {
-	return strings.ToLower(games[guild].players[games[guild].choosenOne].username) == strings.ToLower(username)
+	return strings.ToLower(games[guild].players[games[guild].chosenOne].username) == strings.ToLower(username)
 }
 
 // Returns a leaderboard for the current game
@@ -88,16 +88,16 @@ func leaderboard(guild string) string {
 }
 
 // Skips to the next round
-func updatePoint(guild, choosen string) {
+func updatePoint(guild, chosen string) {
 	for _, g := range games[guild].players {
 		g.article = ""
 	}
 
-	if choosen == "" {
-		games[guild].players[games[guild].choosenOne].points++
+	if chosen == "" {
+		games[guild].players[games[guild].chosenOne].points++
 		games[guild].players[games[guild].guesser].points++
 	} else {
-		games[guild].players[choosen].points++
+		games[guild].players[chosen].points++
 	}
 }
 

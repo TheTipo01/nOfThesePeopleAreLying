@@ -199,7 +199,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 					games[guild].messages = append(games[guild].messages, mex)
 				} else {
 					updatePoint(guild, searchUser(m.Content))
-					mex, _ := s.ChannelMessageSend(games[guild].channel, "Wrong! The correct user was "+games[guild].players[games[guild].choosenOne].username+"!\nUpdated leaderboard: \n"+leaderboard(guild))
+					mex, _ := s.ChannelMessageSend(games[guild].channel, "Wrong! The correct user was "+games[guild].players[games[guild].chosenOne].username+"!\nUpdated leaderboard: \n"+leaderboard(guild))
 					// Add the message, to delete it later
 					games[guild].messages = append(games[guild].messages, mex)
 				}
@@ -227,7 +227,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 			if haveWeFinished(guild) {
 				random := getRand(guild, true)
-				games[guild].choosenOne = random.id
+				games[guild].chosenOne = random.id
 
 				games[guild].response = true
 				mex, _ := s.ChannelMessageSend(games[guild].channel, "All articles are in!\nThe selected one is: "+random.article+"\nAnswer in private with only the username!")

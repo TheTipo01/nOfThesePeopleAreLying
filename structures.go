@@ -31,7 +31,7 @@ type game struct {
 	// Do we except a response from the guesser?
 	response bool
 	// Selected user for the article
-	choosenOne string
+	chosenOne string
 	// Old messages, to delete the next round
 	messages []*discordgo.Message
 	// Id of the previous guesser
