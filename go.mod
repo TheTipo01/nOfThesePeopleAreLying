@@ -3,19 +3,17 @@ module nOfThesePeople
 go 1.15
 
 require (
-	github.com/bwmarrin/discordgo v0.22.1-0.20201122145021-31f70d439498
-	github.com/fsnotify/fsnotify v1.4.10-0.20200417215612-7f4cf4dd2b52 // indirect
-	github.com/magiconair/properties v1.8.4 // indirect
-	github.com/mitchellh/mapstructure v1.4.0 // indirect
-	github.com/pelletier/go-toml v1.8.2-0.20201124181426-2e01f733df54 // indirect
-	github.com/spf13/afero v1.5.0 // indirect
-	github.com/spf13/cast v1.3.2-0.20200723214538-8d17101741c8 // indirect
+	github.com/bwmarrin/discordgo v0.25.0
+	github.com/fsnotify/fsnotify v1.5.4 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/pelletier/go-toml v1.9.5 // indirect
+	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
+	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.1-0.20200824194747-ce7498392da6 // indirect
 	github.com/spf13/pflag v1.0.6-0.20201009195203-85dd5c8bc61c // indirect
-	github.com/spf13/viper v1.7.2-0.20201203004352-bba82cfc61da
-	golang.org/x/crypto v0.0.0-20201203163018-be400aefbc4c // indirect
-	golang.org/x/sys v0.0.0-20201204225414-ed752295db88 // indirect
-	golang.org/x/text v0.3.5-0.20201125200606-c27b9fd57aec // indirect
-	gopkg.in/ini.v1 v1.62.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
+	github.com/spf13/viper v1.11.0
+	golang.org/x/crypto v0.0.0-20220518034528-6f7dac969898 // indirect
+	golang.org/x/sys v0.0.0-20220517195934-5e4e11fc645e // indirect
+	gopkg.in/yaml.v3 v3.0.0-20220512140231-539c8e751b99 // indirect
 )
