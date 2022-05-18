@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
+	"github.com/kkyr/fig"
 	"math/rand"
 	"os"
 	"os/signal"
@@ -13,10 +13,15 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+// Config holds data parsed from the config.yml
+type Config struct {
+	Token  string `fig:"cfg.Token" validate:"required"`
+	Prefix string `fig:"cfg.Prefix" validate:"required"`
+}
+
 var (
-	token  string
-	prefix string
-	games  = make(map[string]*game)
+	cfg   Config
+	games = make(map[string]*game)
 )
 
 const (
@@ -26,38 +31,27 @@ const (
 func init() {
 	rand.Seed(time.Now().UnixNano())
 
-	viper.SetConfigName("config")
-	viper.SetConfigType("yml")
-	viper.AddConfigPath(".")
-
-	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			// Config file not found
-			fmt.Println("Config file not found! See example_config.yml")
-			return
-		}
-	} else {
-		// Config file found
-		token = viper.GetString("token")
-		prefix = viper.GetString("prefix")
-
+	err := fig.Load(&cfg, fig.File("config.yml"), fig.Dirs(".", "./data"))
+	if err != nil {
+		fmt.Println(err.Error())
+		return
 	}
 }
 
 func main() {
 
-	if token == "" {
-		fmt.Println("No token provided. Please modify config.yml")
+	if cfg.Token == "" {
+		fmt.Println("No cfg.Token provided. Please modify config.yml")
 		return
 	}
 
-	if prefix == "" {
-		fmt.Println("No prefix provided. Please modify config.yml")
+	if cfg.Prefix == "" {
+		fmt.Println("No cfg.Prefix provided. Please modify config.yml")
 		return
 	}
 
-	// Create a new Discord session using the provided bot token.
-	dg, err := discordgo.New("Bot " + token)
+	// Create a new Discord session using the provided bot cfg.Token.
+	dg, err := discordgo.New("Bot " + cfg.Token)
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
 		return
@@ -92,7 +86,7 @@ func main() {
 func ready(s *discordgo.Session, _ *discordgo.Ready) {
 
 	// Set the playing status.
-	err := s.UpdateStatus(0, prefix+"help")
+	err := s.UpdateGameStatus(0, cfg.Prefix+"help")
 	if err != nil {
 		fmt.Println("Can't set status,", err)
 	}
@@ -108,7 +102,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	// Create new game
-	if m.Content == prefix+"play" && games[m.GuildID] == nil {
+	if m.Content == cfg.Prefix+"play" && games[m.GuildID] == nil {
 		sntM, err := s.ChannelMessageSend(m.ChannelID, "To play, add a reaction!")
 		if err != nil {
 			fmt.Println(err)
@@ -128,7 +122,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	// Starts the game
-	if m.Content == prefix+"start" && games[m.GuildID] != nil {
+	if m.Content == cfg.Prefix+"start" && games[m.GuildID] != nil {
 
 		_ = s.ChannelMessageDelete(games[m.GuildID].m.ChannelID, games[m.GuildID].m.ID)
 		games[m.GuildID].m = nil
@@ -147,7 +141,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	// Remove player from the game
-	if m.Content == prefix+"remove" && games[m.GuildID] != nil {
+	if m.Content == cfg.Prefix+"remove" && games[m.GuildID] != nil {
 		games[m.GuildID].players[m.ID] = nil
 		mex, _ := s.ChannelMessageSend(m.GuildID, "You have been removed from the game!")
 		// Add the message, to delete it later
@@ -157,7 +151,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	// Stop the game
-	if m.Content == prefix+"stop" && games[m.GuildID] != nil {
+	if m.Content == cfg.Prefix+"stop" && games[m.GuildID] != nil {
 		games[m.GuildID] = nil
 		mex, _ := s.ChannelMessageSend(m.ChannelID, "Game has been stopped!")
 
@@ -168,8 +162,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	// Help message
-	if m.Content == prefix+"help" {
-		mex, _ := s.ChannelMessageSend(m.ChannelID, "```"+prefix+"play - The bot sends a message to start the session\n"+prefix+"start - Start the session\n"+prefix+"remove - Removes yourself from the game\n"+prefix+"stop - Stop the current game```")
+	if m.Content == cfg.Prefix+"help" {
+		mex, _ := s.ChannelMessageSend(m.ChannelID, "```"+cfg.Prefix+"play - The bot sends a message to start the session\n"+cfg.Prefix+"start - Start the session\n"+cfg.Prefix+"remove - Removes yourself from the game\n"+cfg.Prefix+"stop - Stop the current game```")
 
 		time.Sleep(5 * time.Second)
 		_ = s.ChannelMessageDelete(mex.ChannelID, mex.ID)
