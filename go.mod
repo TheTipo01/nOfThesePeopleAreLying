@@ -1,4 +1,4 @@
-module nOfThesePeople
+module github.com/TheTipo01/nOfThesePeopleAreLying
 
 go 1.15
 
